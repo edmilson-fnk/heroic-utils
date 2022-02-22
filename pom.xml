@@ -25,8 +25,8 @@
                     <assembleDirectory>target</assembleDirectory>
                     <programs>
                         <program>
-                            <mainClass>poring.world.Bot</mainClass>
-                            <name>pw-bot</name>
+                            <mainClass>heroic.Bot</mainClass>
+                            <name>heroic-bot</name>
                         </program>
                     </programs>
                 </configuration>
