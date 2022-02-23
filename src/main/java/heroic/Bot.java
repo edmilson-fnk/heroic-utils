@@ -29,12 +29,12 @@ public class Bot {
             }
 
             String msg = event.getMessageContent();
-            String[] tokens = msg.split(" ");
+            String[] tokens = msg.split("\n");
             String command = tokens[0].toLowerCase();
-            TextChannel channel = event.getChannel();
+            TextChannel currentChannel = event.getChannel();
 
             if (command.startsWith("!" + COUNT_COMMAND)) {
-                Count.run(tokens, channel, api);
+                Count.run(tokens, currentChannel, api);
             }
         };
     }

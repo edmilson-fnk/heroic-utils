@@ -2,6 +2,7 @@ package heroic.commands;
 
 import heroic.CounterThread;
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.Nameable;
 import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
@@ -10,22 +11,34 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static heroic.Constants.MINUTES_TO_WATCH;
 
 public class Count {
 
-    public static void run(String[] tokens, TextChannel channel, DiscordApi api) {
+    public static void run(String[] tokens, TextChannel currentChannel, DiscordApi api) {
         if (tokens.length <= 1) {
+            String helpMessage = getHelpMessage();
+            currentChannel.sendMessage(helpMessage);
             return;
         }
 
-        String channelName = String.join(" ", Arrays.copyOfRange(tokens, 1, tokens.length));
+        String[] channelsNames = Arrays.copyOfRange(tokens, 1, tokens.length);
+        Collection<ServerVoiceChannel> channels = new LinkedList<>();
+        for (String channelName : channelsNames) {
+            channels.addAll(getChannels(channelName, api));
+        }
 
-        Collection<ServerVoiceChannel> channels = getChannels(channelName, api);
         if (channels.isEmpty()) {
-            channel.sendMessage("Canal de voz **" + channelName +  "** não encontrado");
+            currentChannel.sendMessage("Nenhum canal de voz encontrado");
         } else {
-            channel.sendMessage("Contando usuários em **" + channelName +  "**");
-            new CounterThread(channels).start();
+            String[] firstLine = tokens[0].split(" ");
+            int timeToWatch = firstLine.length > 1 ? Integer.parseInt(firstLine[1]) : MINUTES_TO_WATCH;
+
+            String names = channels.stream().map(Nameable::getName).collect(Collectors.joining(", "));
+            currentChannel.sendMessage("Contando usuários nos canais: " + names);
+            new CounterThread(channels, timeToWatch).start();
         }
     }
 
@@ -37,6 +50,14 @@ public class Count {
             svc.ifPresent(svcList::add);
         }
         return svcList;
+    }
+
+    public static String getHelpMessage() {
+        return "**Exemplos de uso do comando**:" +
+                "\n```!contar\nCanal 1\nCanal 2```" +
+                "Monitora os canais **Áudio 1** e **Áudio 2** por **100** minutos (tempo padrão)" +
+                "\n```!contar 30\nCanal 1\nCanal 2```" +
+                "Monitora os canais **Áudio 1** e **Áudio 2** por **30** minutos";
     }
 
 }

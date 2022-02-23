@@ -9,24 +9,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class CounterThread extends Thread {
+import static heroic.Constants.DELAY;
 
-    private final int MINUTES_TO_WATCH = 3; // minutes to watch the channel for
-    private final int DELAY = 1; // minutes to wait before recounting
+public class CounterThread extends Thread {
 
     private Collection<ServerVoiceChannel> channels;
     private int minutesLive;
+    private int timeToWatch;
 
-    public CounterThread(Collection<ServerVoiceChannel> channels) {
+    public CounterThread(Collection<ServerVoiceChannel> channels, int timeToWatch) {
         this.channels = channels;
         this.minutesLive = 0;
+        this.timeToWatch = timeToWatch;
     }
 
     @Override
     public void run() {
         Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts = new TreeMap<>();
 
-        while (this.minutesLive < MINUTES_TO_WATCH) {
+        while (this.minutesLive < this.timeToWatch) {
             this.minutesLive += DELAY;
 
             Map<ServerVoiceChannel, Collection<User>> usersByChannel = new HashMap<>();
@@ -41,7 +42,8 @@ public class CounterThread extends Thread {
 
         try {
             String fileName = String.format("WoeWoc-%s", Utils.convertMsToDate(System.currentTimeMillis()));
-            new ExcelFile(fileName).generateWorkbook(counts);
+            String absolutePath = new ExcelFile(fileName).generateWorkbook(counts);
+            EmailSender.sendMail(absolutePath);
         } catch (IOException e) {
             e.printStackTrace();
         }

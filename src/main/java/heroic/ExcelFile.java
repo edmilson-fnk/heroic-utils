@@ -23,11 +23,11 @@ public class ExcelFile {
         this.workbook = new XSSFWorkbook();
     }
 
-    public void generateWorkbook(Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts) throws IOException {
+    public String generateWorkbook(Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts) throws IOException {
         this.counts = counts;
         addResumeSheet();
         addDetailedSheets();
-        writeFile();
+        return writeFile();
     }
 
     public void addResumeSheet() {
@@ -75,7 +75,7 @@ public class ExcelFile {
         }
     }
 
-    private void writeFile() throws IOException {
+    private String writeFile() throws IOException {
         File currDir = new File(".");
         String path = currDir.getAbsolutePath();
         String fileLocation = path.substring(0, path.length() - 1) + this.fileName + ".xlsx";
@@ -83,6 +83,8 @@ public class ExcelFile {
         FileOutputStream outputStream = new FileOutputStream(fileLocation);
         this.workbook.write(outputStream);
         this.workbook.close();
+
+        return fileLocation;
     }
 
 }
