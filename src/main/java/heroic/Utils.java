@@ -6,7 +6,7 @@ import java.util.Date;
 public class Utils {
 
     public static String convertMsToHour(long dateTimeMs) {
-        return new SimpleDateFormat("HH:mm").format(new Date(dateTimeMs));
+        return new SimpleDateFormat("HH-mm").format(new Date(dateTimeMs));
     }
 
     public static String convertMsToDate(long dateTimeMs) {

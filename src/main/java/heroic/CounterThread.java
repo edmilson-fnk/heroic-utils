@@ -1,6 +1,5 @@
 package heroic;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.user.User;
 
@@ -8,6 +7,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class CounterThread extends Thread {
 
@@ -24,7 +24,7 @@ public class CounterThread extends Thread {
 
     @Override
     public void run() {
-        Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts = new HashedMap<>();
+        Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts = new TreeMap<>();
 
         while (this.minutesLive < MINUTES_TO_WATCH) {
             this.minutesLive += DELAY;
@@ -39,7 +39,6 @@ public class CounterThread extends Thread {
             waitSomeMinutes();
         }
 
-        System.out.println(counts);
         try {
             String fileName = String.format("WoeWoc-%s", Utils.convertMsToDate(System.currentTimeMillis()));
             new ExcelFile(fileName).generateWorkbook(counts);
