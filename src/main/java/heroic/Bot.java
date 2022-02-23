@@ -1,14 +1,13 @@
 package heroic;
 
+import heroic.commands.Count;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
-import org.javacord.api.entity.channel.Channel;
-import org.javacord.api.entity.channel.ServerVoiceChannel;
+import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.listener.message.MessageCreateListener;
 
-import java.util.Collection;
-import java.util.Optional;
+import static heroic.Constants.COUNT_COMMAND;
 
 public class Bot {
 
@@ -19,6 +18,7 @@ public class Bot {
         DiscordApi api = discordApiBuilder.setToken(token).login().join();
         api.setMessageCacheSize(0, 0);
         api.addMessageCreateListener(getVoiceChannelListener(api));
+        System.out.println("Heroic Bot iniciado");
     }
 
     private static MessageCreateListener getVoiceChannelListener(DiscordApi api) {
@@ -28,18 +28,14 @@ public class Bot {
                 return;
             }
 
-            String msg = event.getMessageContent().toLowerCase();
-            Collection<Channel> channels = api.getChannelsByName("General");
-            for (Channel channel : channels) {
-                Optional<ServerVoiceChannel> svc = channel.asServerVoiceChannel();
-                if (svc.isPresent()) {
-                    Collection<Long> users = svc.get().getConnectedUserIds();
-                    System.out.println(users);
-                }
+            String msg = event.getMessageContent();
+            String[] tokens = msg.split(" ");
+            String command = tokens[0].toLowerCase();
+            TextChannel channel = event.getChannel();
+
+            if (command.startsWith("!" + COUNT_COMMAND)) {
+                Count.run(tokens, channel, api);
             }
-
-//            event.getChannel().asServerVoiceChannel().get().getConnectedUserIds();
-
         };
     }
 
