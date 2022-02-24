@@ -64,6 +64,7 @@ public class ExcelFile {
                 Row userRow = timeSheet.createRow(totalRow);
                 userRow.createCell(0).setCellValue(entry.getKey().getName());
                 userRow.createCell(1).setCellValue(users.get(0).getName());
+                totalRow++;
                 for (User user : users.subList(1, users.size())) {
                     Row newUserRow = timeSheet.createRow(totalRow);
                     newUserRow.createCell(0).setCellValue("");
