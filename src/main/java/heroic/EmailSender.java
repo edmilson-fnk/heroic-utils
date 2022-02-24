@@ -7,6 +7,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
 
 import static heroic.Constants.*;
@@ -30,8 +32,10 @@ public class EmailSender {
         try {
             MimeMessage message = new MimeMessage(session);
 
+            for (String email : getHeroicEmails()) {
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
+            }
             message.setFrom(new InternetAddress(EMAIL_USER));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(HEROIC_EMAIL));
             message.setSubject("Presença Woe-Woc");
 
             Multipart multipart = new MimeMultipart();
@@ -55,6 +59,10 @@ public class EmailSender {
         } finally {
             new File(filePath).delete();
         }
+    }
+
+    public static Collection<String> getHeroicEmails() {
+        return Arrays.asList(HEROIC_EMAIL.split(";"));
     }
 
 }
