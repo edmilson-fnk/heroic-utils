@@ -55,7 +55,7 @@ public class ExcelFile {
             header.createCell(0).setCellValue("Canal");
             header.createCell(1).setCellValue("Membro");
 
-            int totalRow = 0;
+            int totalRow = 1;
             for (Map.Entry<ServerVoiceChannel, Collection<User>> entry : this.counts.get(time).entrySet()) {
                 ArrayList<User> users = new ArrayList<>(entry.getValue());
                 if (users.isEmpty()) {
