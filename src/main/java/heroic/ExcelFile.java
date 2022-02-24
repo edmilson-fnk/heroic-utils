@@ -50,7 +50,7 @@ public class ExcelFile {
 
     public void addDetailedSheets() {
         for (Long time : this.counts.keySet()) {
-            Sheet timeSheet = this.workbook.createSheet(Utils.convertMsToHour(time));
+            Sheet timeSheet = this.workbook.createSheet(Utils.convertMsToHourName(time));
             Row header = timeSheet.createRow(0);
             header.createCell(0).setCellValue("Canal");
             header.createCell(1).setCellValue("Membro");

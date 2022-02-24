@@ -13,13 +13,13 @@ import static heroic.Constants.DELAY;
 
 public class CounterThread extends Thread {
 
-    private Collection<ServerVoiceChannel> channels;
-    private int minutesLive;
-    private int timeToWatch;
+    private final Collection<ServerVoiceChannel> channels;
+    private final int timeToWatch;
+    private int minutesAlive;
 
     public CounterThread(Collection<ServerVoiceChannel> channels, int timeToWatch) {
         this.channels = channels;
-        this.minutesLive = 0;
+        this.minutesAlive = 0;
         this.timeToWatch = timeToWatch;
     }
 
@@ -27,15 +27,18 @@ public class CounterThread extends Thread {
     public void run() {
         Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts = new TreeMap<>();
 
-        while (this.minutesLive < this.timeToWatch) {
-            this.minutesLive += DELAY;
-
+        while (true) {
             Map<ServerVoiceChannel, Collection<User>> usersByChannel = new HashMap<>();
             for (ServerVoiceChannel svc : this.channels) {
                 Collection<User> users = getUsers(svc);
                 usersByChannel.put(svc, users);
             }
             counts.put(System.currentTimeMillis(), usersByChannel);
+
+            if (this.minutesAlive > this.timeToWatch) {
+                break;
+            }
+            this.minutesAlive += DELAY;
 
             waitSomeMinutes();
         }
