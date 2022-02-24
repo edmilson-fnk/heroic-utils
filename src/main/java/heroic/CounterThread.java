@@ -35,10 +35,10 @@ public class CounterThread extends Thread {
             }
             counts.put(System.currentTimeMillis(), usersByChannel);
 
+            this.minutesAlive += DELAY;
             if (this.minutesAlive > this.timeToWatch) {
                 break;
             }
-            this.minutesAlive += DELAY;
 
             waitSomeMinutes();
         }
