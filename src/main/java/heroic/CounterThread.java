@@ -4,10 +4,7 @@ import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.user.User;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static heroic.Constants.DELAY;
 
@@ -32,15 +29,17 @@ public class CounterThread extends Thread {
             for (ServerVoiceChannel svc : this.channels) {
                 Collection<User> users = getUsers(svc);
                 usersByChannel.put(svc, users);
+                System.out.printf("Users in %s: %d%n", svc.getName(), users.size());
             }
             counts.put(System.currentTimeMillis(), usersByChannel);
 
+            System.out.printf("Thread alive: %d%n", this.minutesAlive);
             this.minutesAlive += DELAY;
             if (this.minutesAlive >= this.timeToWatch) {
                 break;
             }
 
-            waitSomeMinutes();
+            waitSomeTime(DELAY);
         }
 
         try {
@@ -53,12 +52,23 @@ public class CounterThread extends Thread {
     }
 
     public Collection<User> getUsers(ServerVoiceChannel svc) {
-        return svc.getConnectedUsers();
+        int retries = 0;
+        while (true) {
+            try {
+                return svc.getConnectedUsers();
+            } catch (Exception e) {
+                retries++;
+                if (retries >= 5) {
+                    return Collections.emptyList();
+                }
+                waitSomeTime(0.1F);
+            }
+        }
     }
 
-    private void waitSomeMinutes() {
+    private void waitSomeTime(float delay) {
         try {
-            Thread.sleep((long) DELAY * 1000 * 60);
+            Thread.sleep((long) delay * 1000 * 60);
         } catch (InterruptedException e) {
             // We've been interrupted
         }

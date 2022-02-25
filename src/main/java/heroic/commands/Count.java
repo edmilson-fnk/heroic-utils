@@ -37,7 +37,9 @@ public class Count {
             int timeToWatch = firstLine.length > 1 ? Integer.parseInt(firstLine[1]) : MINUTES_TO_WATCH;
 
             String names = channels.stream().map(Nameable::getName).collect(Collectors.joining(", "));
-            currentChannel.sendMessage("Contando usuários nos canais: " + names);
+            String msg = "Contando usuários nos canais: " + names;
+            currentChannel.sendMessage(msg);
+            System.out.println(msg);
             new CounterThread(channels, timeToWatch).start();
         }
     }

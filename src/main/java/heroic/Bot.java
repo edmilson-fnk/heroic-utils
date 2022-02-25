@@ -16,7 +16,6 @@ public class Bot {
         DiscordApiBuilder discordApiBuilder = new DiscordApiBuilder();
         discordApiBuilder.setWaitForServersOnStartup(true);
         DiscordApi api = discordApiBuilder.setToken(token).login().join();
-        api.setMessageCacheSize(0, 0);
         api.addMessageCreateListener(getVoiceChannelListener(api));
         System.out.println("Heroic Bot iniciado");
     }
