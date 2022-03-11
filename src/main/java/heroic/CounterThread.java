@@ -36,11 +36,9 @@ public class CounterThread extends Thread {
             for (ServerVoiceChannel svc : this.channels) {
                 Collection<User> users = getUsers(svc);
                 usersByChannel.put(svc, users);
-                System.out.printf("Users in %s: %d%n", svc.getName(), users.size());
             }
             counts.put(System.currentTimeMillis(), usersByChannel);
 
-            System.out.printf("Thread alive: %d%n", this.minutesAlive);
             this.minutesAlive += DELAY;
             if (this.minutesAlive >= this.timeToWatch) {
                 break;

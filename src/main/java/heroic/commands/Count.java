@@ -46,7 +46,6 @@ public class Count {
             String names = channels.stream().map(Nameable::getName).collect(Collectors.joining(", "));
             String msg = "Contando usuários nos canais: " + names;
             currentChannel.sendMessage(msg);
-            System.out.println(msg);
             CounterThread countThread = new CounterThread(currentChannel, channels, timeToWatch);
             countThread.start();
             return countThread;
