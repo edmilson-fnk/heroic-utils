@@ -29,6 +29,7 @@ public class Count {
             currentChannel.sendMessage(
                     String.format("Contagem já está em curso, use **!%s** antes de iniciar nova contagem.", STOP_COMMAND)
             );
+            return botCountThread;
         }
 
         String[] channelsNames = Arrays.copyOfRange(tokens, 1, tokens.length);
