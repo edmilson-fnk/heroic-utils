@@ -1,6 +1,7 @@
 package heroic;
 
 import heroic.commands.Count;
+import heroic.commands.StopCount;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
@@ -8,8 +9,11 @@ import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.listener.message.MessageCreateListener;
 
 import static heroic.Constants.COUNT_COMMAND;
+import static heroic.Constants.STOP_COMMAND;
 
 public class Bot {
+
+    private static CounterThread countThread = null;
 
     public static void main(String[] args) {
         String token = System.getenv("DISCORD_TOKEN");
@@ -33,7 +37,10 @@ public class Bot {
             TextChannel currentChannel = event.getChannel();
 
             if (command.startsWith("!" + COUNT_COMMAND)) {
-                Count.run(tokens, currentChannel, api);
+                countThread = Count.run(tokens, currentChannel, api, countThread);
+            } else if (command.startsWith("!" + STOP_COMMAND)) {
+                StopCount.run(tokens, currentChannel, api, countThread);
+                countThread = null;
             }
         };
     }

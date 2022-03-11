@@ -14,14 +14,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static heroic.Constants.MINUTES_TO_WATCH;
+import static heroic.Constants.STOP_COMMAND;
 
 public class Count {
 
-    public static void run(String[] tokens, TextChannel currentChannel, DiscordApi api) {
+    public static CounterThread run(String[] tokens, TextChannel currentChannel, DiscordApi api, CounterThread botCountThread) {
         if (tokens.length <= 1) {
             String helpMessage = getHelpMessage();
             currentChannel.sendMessage(helpMessage);
-            return;
+            return null;
+        }
+
+        if (botCountThread != null) {
+            currentChannel.sendMessage(
+                    String.format("Contagem já está em curso, use **!%s** antes de iniciar nova contagem.", STOP_COMMAND)
+            );
         }
 
         String[] channelsNames = Arrays.copyOfRange(tokens, 1, tokens.length);
@@ -40,8 +47,11 @@ public class Count {
             String msg = "Contando usuários nos canais: " + names;
             currentChannel.sendMessage(msg);
             System.out.println(msg);
-            new CounterThread(channels, timeToWatch).start();
+            CounterThread countThread = new CounterThread(currentChannel, channels, timeToWatch);
+            countThread.start();
+            return countThread;
         }
+        return null;
     }
 
     public static Collection<ServerVoiceChannel> getChannels(String channelName, DiscordApi api) {

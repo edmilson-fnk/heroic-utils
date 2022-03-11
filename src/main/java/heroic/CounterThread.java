@@ -1,6 +1,7 @@
 package heroic;
 
 import org.javacord.api.entity.channel.ServerVoiceChannel;
+import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.user.User;
 
 import java.io.IOException;
@@ -10,21 +11,27 @@ import static heroic.Constants.DELAY;
 
 public class CounterThread extends Thread {
 
+    private final TextChannel currentChannel;
     private final Collection<ServerVoiceChannel> channels;
     private final int timeToWatch;
     private int minutesAlive;
+    private boolean shouldFinish;
+    Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts;
 
-    public CounterThread(Collection<ServerVoiceChannel> channels, int timeToWatch) {
+    public CounterThread(TextChannel currentChannel, Collection<ServerVoiceChannel> channels, int timeToWatch) {
+        this.currentChannel = currentChannel;
         this.channels = channels;
         this.minutesAlive = 0;
         this.timeToWatch = timeToWatch;
+        this.counts = null;
+        this.shouldFinish = false;
     }
 
     @Override
     public void run() {
-        Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts = new TreeMap<>();
+        this.counts = new TreeMap<>();
 
-        while (true) {
+        while (!this.shouldFinish) {
             Map<ServerVoiceChannel, Collection<User>> usersByChannel = new HashMap<>();
             for (ServerVoiceChannel svc : this.channels) {
                 Collection<User> users = getUsers(svc);
@@ -44,11 +51,18 @@ public class CounterThread extends Thread {
 
         try {
             String fileName = String.format("WoeWoc-%s", Utils.convertMsToDate(System.currentTimeMillis()));
-            String absolutePath = new ExcelFile(fileName).generateWorkbook(counts);
+            String absolutePath = new ExcelFile(fileName).generateWorkbook(this.counts);
             EmailSender.sendMail(absolutePath);
+            currentChannel.sendMessage("E-mail enviado");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void finish() {
+        currentChannel.sendMessage("Encerrando contagem, enviando e-mail em instantes");
+        this.shouldFinish = true;
     }
 
     public Collection<User> getUsers(ServerVoiceChannel svc) {
@@ -68,7 +82,9 @@ public class CounterThread extends Thread {
 
     private void waitSomeTime(float delay) {
         try {
-            Thread.sleep((long) delay * 1000 * 60);
+            for (int i = 0; i < delay && !this.shouldFinish; i++) {
+                Thread.sleep(1000 * 60);
+            }
         } catch (InterruptedException e) {
             // We've been interrupted
         }
