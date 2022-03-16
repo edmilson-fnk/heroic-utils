@@ -58,7 +58,7 @@ public class ExcelFile {
             int totalRow = 1;
             for (Map.Entry<ServerVoiceChannel, Collection<User>> entry : this.counts.get(time).entrySet()) {
                 ArrayList<User> users = new ArrayList<>(entry.getValue());
-                if (users.isEmpty()) {
+                if (users.isEmpty() || (users.size() == 1 && users.get(0) == null)) {
                     continue;
                 }
                 Row userRow = timeSheet.createRow(totalRow);
@@ -66,6 +66,9 @@ public class ExcelFile {
                 userRow.createCell(1).setCellValue(users.get(0).getName());
                 totalRow++;
                 for (User user : users.subList(1, users.size())) {
+                    if (user == null) {
+                        continue;
+                    }
                     Row newUserRow = timeSheet.createRow(totalRow);
                     newUserRow.createCell(0).setCellValue("");
                     newUserRow.createCell(1).setCellValue(user.getName());
