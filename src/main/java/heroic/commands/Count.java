@@ -2,10 +2,12 @@ package heroic.commands;
 
 import heroic.CounterThread;
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.DiscordEntity;
 import org.javacord.api.entity.Nameable;
 import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.server.Server;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,7 +20,7 @@ import static heroic.Constants.STOP_COMMAND;
 
 public class Count {
 
-    public static CounterThread run(String[] tokens, TextChannel currentChannel, DiscordApi api, CounterThread botCountThread) {
+    public static CounterThread run(String[] tokens, TextChannel currentChannel, Server server, DiscordApi api, CounterThread botCountThread) {
         if (tokens.length <= 1) {
             String helpMessage = getHelpMessage();
             currentChannel.sendMessage(helpMessage);
@@ -45,9 +47,12 @@ public class Count {
             int timeToWatch = firstLine.length > 1 ? Integer.parseInt(firstLine[1]) : MINUTES_TO_WATCH;
 
             String names = channels.stream().map(Nameable::getName).collect(Collectors.joining(", "));
+            String ids = channels.stream().map(DiscordEntity::getId).map(id -> Long.toString(id)).collect(Collectors.joining(", "));
             String msg = "Contando usuários nos canais: " + names;
             currentChannel.sendMessage(msg);
-            CounterThread countThread = new CounterThread(api, currentChannel, channels, timeToWatch);
+            System.out.println(msg);
+            System.out.println("IDs dos canais: " + ids);
+            CounterThread countThread = new CounterThread(api, currentChannel, server, channels, timeToWatch);
             countThread.start();
             return countThread;
         }

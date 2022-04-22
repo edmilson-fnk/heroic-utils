@@ -5,12 +5,14 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class ExcelFile {
 
@@ -23,10 +25,10 @@ public class ExcelFile {
         this.workbook = new XSSFWorkbook();
     }
 
-    public String generateWorkbook(Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts) throws IOException {
+    public String generateWorkbook(Server server, Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts) throws IOException {
         this.counts = counts;
         addResumeSheet();
-        addDetailedSheets();
+        addDetailedSheets(server);
         return writeFile();
     }
 
@@ -48,7 +50,7 @@ public class ExcelFile {
         }
     }
 
-    public void addDetailedSheets() {
+    public void addDetailedSheets(Server server) {
         for (Long time : this.counts.keySet()) {
             Sheet timeSheet = this.workbook.createSheet(Utils.convertMsToHourName(time));
             Row header = timeSheet.createRow(0);
@@ -63,7 +65,7 @@ public class ExcelFile {
                 }
                 Row userRow = timeSheet.createRow(totalRow);
                 userRow.createCell(0).setCellValue(entry.getKey().getName());
-                userRow.createCell(1).setCellValue(users.get(0).getName());
+                userRow.createCell(1).setCellValue(users.get(0).getNickname(server).orElse(users.get(0).getName()));
                 totalRow++;
                 for (User user : users.subList(1, users.size())) {
                     if (user == null) {
@@ -71,7 +73,7 @@ public class ExcelFile {
                     }
                     Row newUserRow = timeSheet.createRow(totalRow);
                     newUserRow.createCell(0).setCellValue("");
-                    newUserRow.createCell(1).setCellValue(user.getName());
+                    newUserRow.createCell(1).setCellValue(user.getNickname(server).orElse(user.getName()));
                     totalRow++;
                 }
             }

@@ -5,7 +5,8 @@ import java.util.Date;
 
 public class Utils {
 
-    public static final long DIFF = 1000 * 60 * 60 * 3;
+    public static final long DIFF = 0;
+//    public static final long DIFF = 1000 * 60 * 60 * 3;
 
     public static String convertMsToHour(long dateTimeMs) {
         return new SimpleDateFormat("HH:mm").format(new Date(dateTimeMs - DIFF));

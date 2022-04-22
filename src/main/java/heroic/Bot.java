@@ -6,6 +6,7 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageAuthor;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.listener.message.MessageCreateListener;
 
 import static heroic.Constants.COUNT_COMMAND;
@@ -35,9 +36,10 @@ public class Bot {
             String[] tokens = msg.split("\n");
             String command = tokens[0].toLowerCase();
             TextChannel currentChannel = event.getChannel();
+            Server server = event.getServer().get();
 
             if (command.startsWith("!" + COUNT_COMMAND)) {
-                countThread = Count.run(tokens, currentChannel, api, countThread);
+                countThread = Count.run(tokens, currentChannel, server, api, countThread);
             } else if (command.startsWith("!" + STOP_COMMAND)) {
                 StopCount.run(tokens, currentChannel, api, countThread);
                 countThread = null;
