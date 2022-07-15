@@ -52,7 +52,16 @@ public class ExcelFile {
 
     public void addDetailedSheets(Server server) {
         for (Long time : this.counts.keySet()) {
-            Sheet timeSheet = this.workbook.createSheet(Utils.convertMsToHourName(time));
+            Sheet timeSheet;
+            String sheetName = Utils.convertMsToHourName(time);
+            while (true) {
+                try {
+                    timeSheet =  this.workbook.createSheet(sheetName);
+                    break;
+                } catch (Exception e) {
+                    sheetName = sheetName + "-2";
+                }
+            }
             Row header = timeSheet.createRow(0);
             header.createCell(0).setCellValue("Canal");
             header.createCell(1).setCellValue("Membro");

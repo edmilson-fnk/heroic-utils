@@ -5,6 +5,7 @@ import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,7 +29,6 @@ public class CounterThread extends Thread {
         this.currentChannel = currentChannel;
         this.server = server;
         this.channels = channels;
-        this.minutesAlive = 0;
         this.timeToWatch = timeToWatch;
         this.counts = null;
         this.shouldFinish = false;
@@ -38,22 +38,30 @@ public class CounterThread extends Thread {
     public void run() {
         this.counts = new TreeMap<>();
 
+        long startTime = System.currentTimeMillis();
+        int minutesAlive = 0;
         while (true) {
+            while (new DateTime().getMinuteOfHour() % 10 != 0) {
+                waitSomeTime(1);
+                minutesAlive = (int) ((System.currentTimeMillis() - startTime) / (1000 * 60));
+                if (this.shouldFinish || minutesAlive >= this.timeToWatch) {
+                    break;
+                }
+            }
+
             Map<ServerVoiceChannel, Collection<User>> usersByChannel = new HashMap<>();
+            counts.put(System.currentTimeMillis(), usersByChannel);
             for (ServerVoiceChannel svc : this.channels) {
 //                Collection<User> users = getSVCUsers(svc);
                 Collection<Long> userIds = getSVCUserIds(svc);
                 Collection<User> users = getUsersFromIds(new LinkedList<>(userIds));
                 usersByChannel.put(svc, users);
             }
-            counts.put(System.currentTimeMillis(), usersByChannel);
 
-            this.minutesAlive += DELAY;
-            if ((this.minutesAlive >= this.timeToWatch) || this.shouldFinish) {
+            waitSomeTime(1);
+            if ((minutesAlive >= this.timeToWatch) || this.shouldFinish) {
                 break;
             }
-
-            waitSomeTime(DELAY);
         }
 
         try {
