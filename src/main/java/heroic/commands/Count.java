@@ -4,15 +4,14 @@ import heroic.CounterThread;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.DiscordEntity;
 import org.javacord.api.entity.Nameable;
-import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.channel.VoiceChannel;
 import org.javacord.api.entity.server.Server;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static heroic.Constants.MINUTES_TO_WATCH;
@@ -60,13 +59,7 @@ public class Count {
     }
 
     public static Collection<ServerVoiceChannel> getChannels(String channelName, DiscordApi api) {
-        Collection<Channel> channelsByName = api.getChannelsByName(channelName);
-        Collection<ServerVoiceChannel> svcList = new LinkedList<>();
-        for (Channel channel : channelsByName) {
-            Optional<ServerVoiceChannel> svc = channel.asServerVoiceChannel();
-            svc.ifPresent(svcList::add);
-        }
-        return svcList;
+        return api.getServerVoiceChannelsByName(channelName);
     }
 
     public static String getHelpMessage() {

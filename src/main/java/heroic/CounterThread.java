@@ -10,8 +10,7 @@ import org.joda.time.DateTime;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-
-import static heroic.Constants.DELAY;
+import java.util.stream.Collectors;
 
 public class CounterThread extends Thread {
 
@@ -20,9 +19,9 @@ public class CounterThread extends Thread {
     private final int timeToWatch;
     private final DiscordApi api;
     private final Server server;
-    private int minutesAlive;
     private boolean shouldFinish;
     Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts;
+    Map<Long, Map<Long, Boolean>> deafStatus;
 
     public CounterThread(DiscordApi api, TextChannel currentChannel, Server server, Collection<ServerVoiceChannel> channels, int timeToWatch) {
         this.api = api;
@@ -31,12 +30,14 @@ public class CounterThread extends Thread {
         this.channels = channels;
         this.timeToWatch = timeToWatch;
         this.counts = null;
+        this.deafStatus = null;
         this.shouldFinish = false;
     }
 
     @Override
     public void run() {
         this.counts = new TreeMap<>();
+        this.deafStatus = new TreeMap<>();
 
         long startTime = System.currentTimeMillis();
         int minutesAlive = 0;
@@ -50,10 +51,15 @@ public class CounterThread extends Thread {
             }
 
             Map<ServerVoiceChannel, Collection<User>> usersByChannel = new HashMap<>();
-            counts.put(System.currentTimeMillis(), usersByChannel);
+            long currentTimeKey = System.currentTimeMillis();
+            this.counts.put(currentTimeKey, usersByChannel);
+            this.deafStatus.put(currentTimeKey, new HashMap<>());
             for (ServerVoiceChannel svc : this.channels) {
-//                Collection<User> users = getSVCUsers(svc);
                 Collection<Long> userIds = getSVCUserIds(svc);
+                Map<Long, Boolean> deafStatus = userIds.stream().collect(
+                        Collectors.toMap(u -> u, u -> svc.getServer().isSelfDeafened(u))
+                );
+                this.deafStatus.get(currentTimeKey).putAll(deafStatus);
                 Collection<User> users = getUsersFromIds(new LinkedList<>(userIds));
                 usersByChannel.put(svc, users);
             }
@@ -66,7 +72,7 @@ public class CounterThread extends Thread {
 
         try {
             String fileName = String.format("WoeWoc-%s", Utils.convertMsToDate(System.currentTimeMillis()));
-            String absolutePath = new ExcelFile(fileName).generateWorkbook(this.server, this.counts);
+            String absolutePath = new ExcelFile(fileName).generateWorkbook(this.server, this.counts, this.deafStatus);
             EmailSender.sendMail(absolutePath);
             currentChannel.sendMessage("E-mail enviado");
         } catch (IOException e) {

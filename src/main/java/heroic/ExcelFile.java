@@ -12,21 +12,26 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.function.Supplier;
 
 public class ExcelFile {
 
     private final String fileName;
     private final Workbook workbook;
     private Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts;
+    Map<Long, Map<Long, Boolean>> deafStatus;
 
     public ExcelFile(String fileName) throws IOException {
         this.fileName = fileName;
         this.workbook = new XSSFWorkbook();
     }
 
-    public String generateWorkbook(Server server, Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts) throws IOException {
+    public String generateWorkbook(
+            Server server,
+            Map<Long, Map<ServerVoiceChannel, Collection<User>>> counts,
+            Map<Long, Map<Long, Boolean>> deafStatus
+    ) throws IOException {
         this.counts = counts;
+        this.deafStatus = deafStatus;
         addResumeSheet();
         addDetailedSheets(server);
         return writeFile();
@@ -37,23 +42,27 @@ public class ExcelFile {
         Row header = summarySheet.createRow(0);
         header.createCell(0).setCellValue("Horário");
         header.createCell(1).setCellValue("Quantidade");
+        header.createCell(2).setCellValue("Sem áudio");
 
         int currentRow = 1;
-        for (Long time : this.counts.keySet()) {
-            String hour = Utils.convertMsToHour(time);
+        for (Long timeKey : this.counts.keySet()) {
+            String hour = Utils.convertMsToHour(timeKey);
             Row dataRow = summarySheet.createRow(currentRow);
-            long count = this.counts.get(time).values().stream().mapToLong(Collection::size).sum();
+            long count = this.counts.get(timeKey).values().stream().mapToLong(Collection::size).sum();
 
             dataRow.createCell(0).setCellValue(hour);
             dataRow.createCell(1).setCellValue((int) count);
+
+            long countDeafen = this.deafStatus.get(timeKey).values().stream().filter(deafen -> deafen).count();
+            dataRow.createCell(2).setCellValue((int) countDeafen > 0 ? Integer.toString(((int) countDeafen)) : "");
             currentRow++;
         }
     }
 
     public void addDetailedSheets(Server server) {
-        for (Long time : this.counts.keySet()) {
+        for (Long timeKey : this.counts.keySet()) {
             Sheet timeSheet;
-            String sheetName = Utils.convertMsToHourName(time);
+            String sheetName = Utils.convertMsToHourName(timeKey);
             while (true) {
                 try {
                     timeSheet =  this.workbook.createSheet(sheetName);
@@ -65,16 +74,19 @@ public class ExcelFile {
             Row header = timeSheet.createRow(0);
             header.createCell(0).setCellValue("Canal");
             header.createCell(1).setCellValue("Membro");
+            header.createCell(2).setCellValue("Sem áudio");
 
             int totalRow = 1;
-            for (Map.Entry<ServerVoiceChannel, Collection<User>> entry : this.counts.get(time).entrySet()) {
+            for (Map.Entry<ServerVoiceChannel, Collection<User>> entry : this.counts.get(timeKey).entrySet()) {
                 ArrayList<User> users = new ArrayList<>(entry.getValue());
                 if (users.isEmpty() || (users.size() == 1 && users.get(0) == null)) {
                     continue;
                 }
                 Row userRow = timeSheet.createRow(totalRow);
                 userRow.createCell(0).setCellValue(entry.getKey().getName());
-                userRow.createCell(1).setCellValue(users.get(0).getNickname(server).orElse(users.get(0).getName()));
+                User firstUser = users.get(0);
+                userRow.createCell(1).setCellValue(firstUser.getNickname(server).orElse(firstUser.getName()));
+                userRow.createCell(2).setCellValue(this.deafStatus.get(timeKey).containsKey(firstUser.getId()) ? "Sem áudio" : "");
                 totalRow++;
                 for (User user : users.subList(1, users.size())) {
                     if (user == null) {
@@ -83,6 +95,10 @@ public class ExcelFile {
                     Row newUserRow = timeSheet.createRow(totalRow);
                     newUserRow.createCell(0).setCellValue("");
                     newUserRow.createCell(1).setCellValue(user.getNickname(server).orElse(user.getName()));
+
+                    newUserRow.createCell(2).setCellValue(
+                            this.deafStatus.get(timeKey).containsKey(user.getId()) ? "Sem áudio" : ""
+                    );
                     totalRow++;
                 }
             }
