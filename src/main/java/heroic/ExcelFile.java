@@ -54,7 +54,7 @@ public class ExcelFile {
             dataRow.createCell(1).setCellValue((int) count);
 
             long countDeafen = this.deafStatus.get(timeKey).values().stream().filter(deafen -> deafen).count();
-            dataRow.createCell(2).setCellValue((int) countDeafen > 0 ? Integer.toString(((int) countDeafen)) : "");
+            dataRow.createCell(2).setCellValue((int) countDeafen > 0 ? Integer.toString((int) countDeafen) : "");
             currentRow++;
         }
     }
@@ -86,7 +86,8 @@ public class ExcelFile {
                 userRow.createCell(0).setCellValue(entry.getKey().getName());
                 User firstUser = users.get(0);
                 userRow.createCell(1).setCellValue(firstUser.getNickname(server).orElse(firstUser.getName()));
-                userRow.createCell(2).setCellValue(this.deafStatus.get(timeKey).containsKey(firstUser.getId()) ? "Sem áudio" : "");
+                boolean isDeafen = this.deafStatus.get(timeKey).getOrDefault(firstUser.getId(), false);
+                userRow.createCell(2).setCellValue(isDeafen ? "Sem áudio" : "");
                 totalRow++;
                 for (User user : users.subList(1, users.size())) {
                     if (user == null) {
@@ -96,8 +97,9 @@ public class ExcelFile {
                     newUserRow.createCell(0).setCellValue("");
                     newUserRow.createCell(1).setCellValue(user.getNickname(server).orElse(user.getName()));
 
+                    boolean isDeafenRow = this.deafStatus.get(timeKey).getOrDefault(user.getId(), false);
                     newUserRow.createCell(2).setCellValue(
-                            this.deafStatus.get(timeKey).containsKey(user.getId()) ? "Sem áudio" : ""
+                            isDeafenRow ? "Sem áudio" : ""
                     );
                     totalRow++;
                 }

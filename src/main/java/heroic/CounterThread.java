@@ -42,8 +42,8 @@ public class CounterThread extends Thread {
         long startTime = System.currentTimeMillis();
         int minutesAlive = 0;
         while (true) {
-            while (new DateTime().getMinuteOfHour() % 10 != 0) {
-                waitSomeTime(1);
+            while (new DateTime().getMinuteOfHour() % 5 != 0) {
+                wait1Minute();
                 minutesAlive = (int) ((System.currentTimeMillis() - startTime) / (1000 * 60));
                 if (this.shouldFinish || minutesAlive >= this.timeToWatch) {
                     break;
@@ -64,7 +64,7 @@ public class CounterThread extends Thread {
                 usersByChannel.put(svc, users);
             }
 
-            waitSomeTime(1);
+            wait1Minute();
             if ((minutesAlive >= this.timeToWatch) || this.shouldFinish) {
                 break;
             }
@@ -101,22 +101,6 @@ public class CounterThread extends Thread {
         this.shouldFinish = true;
     }
 
-    public Collection<User> getSVCUsers(ServerVoiceChannel svc) {
-        int retries = 0;
-        while (true) {
-            try {
-                return svc.getConnectedUsers();
-            } catch (Exception e) {
-                retries++;
-                if (retries >= 5) {
-                    return Collections.emptyList();
-                }
-                waitSomeTime(0.1F);
-                e.printStackTrace();
-            }
-        }
-    }
-
     public Collection<Long> getSVCUserIds(ServerVoiceChannel svc) {
         int retries = 0;
         while (true) {
@@ -127,17 +111,15 @@ public class CounterThread extends Thread {
                 if (retries >= 5) {
                     return Collections.emptyList();
                 }
-                waitSomeTime(0.1F);
+                wait1Minute();
                 e.printStackTrace();
             }
         }
     }
 
-    private void waitSomeTime(float delay) {
+    private void wait1Minute() {
         try {
-            for (int i = 0; i < delay && !this.shouldFinish; i++) {
-                Thread.sleep(1000 * 60);
-            }
+            Thread.sleep(1000 * 60);
         } catch (InterruptedException e) {
             // We've been interrupted
         }
